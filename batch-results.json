@@ -1,0 +1,48 @@
+{
+  "reportFormat": "CTRF",
+  "specVersion": "0.0.0",
+  "results": {
+    "tool": { "name": "AIVA" },
+    "summary": {
+      "tests": 2,
+      "passed": 1,
+      "failed": 1,
+      "pending": 0,
+      "skipped": 0,
+      "other": 0,
+      "start": 1776692248837,
+      "stop": 1776692276526,
+      "extra": { "userEmail": "Vaclav.Hodina@ysoft.com", "batchId": "8832bc1f-6cc8-4e97-b364-9f2d5e7e66bf" }
+    },
+    "tests": [
+      {
+        "name": "Recording on https://aiva.works recorded on 16. 4. 2026 9:18:47",
+        "status": "failed",
+        "rawStatus": "Failed",
+        "duration": 22427,
+        "start": 1776692253786,
+        "stop": 1776692276213,
+        "message": "Failed at step: 2: Text assertion failed.",
+        "parameters": {},
+        "extra": {
+          "testResultLink": "https://app.aiva.works/tests/4ff617ef-30fa-473c-9c64-c92ae2d3a152?testRunId=d5d9a6a4-76db-4022-b5ae-06ce419290ae&testId=f5f5ec70-62ce-47b0-99c9-73597561ad9f",
+          "testRunId": "d5d9a6a4-76db-4022-b5ae-06ce419290ae"
+        }
+      },
+      {
+        "name": "Recording on https://app.aiva.works recorded on 10. 4. 2026 10:46:25",
+        "status": "passed",
+        "rawStatus": "Passed",
+        "duration": 20417,
+        "start": 1776692253785,
+        "stop": 1776692274202,
+        "message": null,
+        "parameters": {},
+        "extra": {
+          "testResultLink": "https://app.aiva.works/tests/08c28d7b-c95c-4158-8efc-3ae451d12a6a?testRunId=c7b75b34-26be-4a00-89a5-4d9873564b66&testId=d3245cfd-b880-4cfd-8cf9-7f463bb6ce92",
+          "testRunId": "c7b75b34-26be-4a00-89a5-4d9873564b66"
+        }
+      }
+    ]
+  }
+}

@@ -20,5 +20,16 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "ctrf": "^0.2.0",
+    "node": "^24.15.0",
+    "typescript": "^6.0.3",
+    "yocto-spinner": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "ctrf": "^0.2.0"
   }
 }

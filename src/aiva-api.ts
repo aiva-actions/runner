@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 import type { CTRFReport } from 'ctrf';
 
 interface runTestBatchResponse {
@@ -26,7 +25,7 @@ export async function executeBatch(
     variableOverridesPerTest: object,
     gatewayName: string,
 ): Promise<string> {
-    core.info('Executing test batch containing tests labeled with: ' + labels);
+    console.log('Executing test batch containing tests labeled with: ' + labels);
 
     const res: Response = await fetch(apiUrl, {
         method: 'POST',
@@ -50,7 +49,7 @@ export async function executeBatch(
         throw new Error(`AIVA batch request failed (${res.status}): ${errText}`);
     }
 
-    core.info(`AIVA batch request accepted (${res.status})`);
+    console.log(`AIVA batch request accepted (${res.status})`);
 
     const responseJSON: runTestBatchResponse = (await res.json()) as runTestBatchResponse;
     const batchId: string = responseJSON.testBatchId;
