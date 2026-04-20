@@ -1,0 +1,24 @@
+{
+  "name": "batch-runner",
+  "version": "0.0.1",
+  "description": "Typescript Library for running batches in AIVA on https://app.aiva.works",
+  "keywords": [
+    "automated",
+    "testing"
+  ],
+  "homepage": "https://github.com/aiva-actions/batch-runner#readme",
+  "bugs": {
+    "url": "https://github.com/aiva-actions/batch-runner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aiva-actions/batch-runner.git"
+  },
+  "license": "MIT",
+  "author": "Vaclav Hodina (vaclav.hodina@ysoft.com)",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
