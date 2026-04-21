@@ -20,7 +20,11 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts"
+    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts",
+    "prepare": "npm run build"
+  },
+  "bin": {
+    "runner": "./dist/index.js"
   },
   "dependencies": {
     "@rollup/plugin-commonjs": "^29.0.2",

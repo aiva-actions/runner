@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from 'commander';
 import { executeBatch, getBatchStatus } from './aiva-api.ts';
 import { writeFile } from 'node:fs/promises';
