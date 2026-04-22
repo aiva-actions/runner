@@ -1,6 +1,6 @@
 import type { CTRFReport } from 'ctrf';
 
-interface runTestBatchResponse {
+export interface RunTestBatchResponse {
     testBatchId: string;
 }
 
@@ -8,23 +8,23 @@ interface runTestBatchResponse {
  * @param {Request | string | URL} apiUrl
  * @param {string} apiKey
  * @param {string[]} labels
- * @param maxNumberOfAgents
- * @param batchName
- * @param globalVariableOverrides
- * @param variableOverridesPerTest
- * @param gatewayName
- * @returns {string} batchID of the newly created batch in AIVA
+ * @param {string} maxNumberOfAgents
+ * @param {string} batchName
+ * @param {object} globalVariableOverrides
+ * @param {object} variableOverridesPerTest
+ * @param {string} gatewayName
+ * @returns object batchID of the newly created batch in AIVA
  */
-export async function executeBatch(
+export async function executeBatch (
     apiUrl: string,
     apiKey: string,
-    labels: string[],
+    labels: string[] | undefined,
     maxNumberOfAgents: string,
     batchName: string,
-    globalVariableOverrides: object,
-    variableOverridesPerTest: object,
-    gatewayName: string,
-): Promise<string> {
+    globalVariableOverrides: object | null,
+    variableOverridesPerTest: object | null,
+    gatewayName: string | undefined,
+): Promise<RunTestBatchResponse> {
     console.log('Executing test batch containing tests labeled with: ' + labels);
 
     const res: Response = await fetch(apiUrl, {
@@ -51,21 +51,22 @@ export async function executeBatch(
 
     console.log(`AIVA batch request accepted (${res.status})`);
 
-    const responseJSON: runTestBatchResponse = (await res.json()) as runTestBatchResponse;
+    const responseJSON: RunTestBatchResponse = (await res.json()) as RunTestBatchResponse;
     const batchId: string = responseJSON.testBatchId;
     if (!batchId) {
         throw new Error('AIVA batch response missing testBatchId');
     }
-    return batchId;
+    return responseJSON;
 }
 
 /**
- * @param {string} apiUrl
+ * @param {string} aivaUrl
  * @param {string} apiKey
  * @param {string} batchId
+ * @returns {CTRFReport} object in CTRFReport format
  */
-export async function getBatchStatus(apiUrl: string, apiKey: string, batchId: string): Promise<CTRFReport> {
-    const res: Response = await fetch(apiUrl + '/' + batchId, {
+export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string): Promise<CTRFReport> {
+    const res: Response = await fetch(aivaUrl + '/v1/batches/' + batchId, {
         method: 'GET',
         headers: {
             Accept: 'application/json',

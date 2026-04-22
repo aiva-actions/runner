@@ -1,18 +1,18 @@
 {
-  "name": "batch-runner",
+  "name": "runner",
   "version": "0.0.1",
-  "description": "Typescript Library for running batches in AIVA on https://app.aiva.works",
+  "description": "Typescript Library for running tests in AIVA.",
   "keywords": [
     "automated",
     "testing"
   ],
-  "homepage": "https://github.com/aiva-actions/batch-runner#readme",
+  "homepage": "https://github.com/aiva-actions/runner#readme",
   "bugs": {
-    "url": "https://github.com/aiva-actions/batch-runner/issues"
+    "url": "https://github.com/aiva-actions/runner/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aiva-actions/batch-runner.git"
+    "url": "git+https://github.com/aiva-actions/runner.git"
   },
   "license": "MIT",
   "author": "Vaclav Hodina (vaclav.hodina@ysoft.com)",
@@ -27,6 +27,7 @@
     "runner": "./dist/index.js"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^14.0.0",
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
