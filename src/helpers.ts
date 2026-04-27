@@ -84,27 +84,7 @@ export function isTestBatchRunning(batchStatusResponse: CTRFReport): boolean {
     return pending > 0;
 }
 
-export function validateBatchProgress(
-    previousNumberOfPendingTests: number,
-    changeTimeOfPendingTests: Date | null,
-    batchProgressTimeout: number,
-    batchStatusResponse: CTRFReport,
-): Date | null {
-    const currentTime = new Date();
-    if (changeTimeOfPendingTests == null) {
-        changeTimeOfPendingTests = new Date();
-    }
-    if (batchStatusResponse?.results?.summary?.pending < previousNumberOfPendingTests) {
-        return new Date();
-        // "+" before Date due to https://github.com/Microsoft/TypeScript/issues/5710
-    } else if (+currentTime - +changeTimeOfPendingTests > batchProgressTimeout * 1000) {
-        throw new Error('Timeout waiting for pending tests.');
-    } else {
-        return null;
-    }
-}
-
-export function isValueInRange(value: number, minValue: number, maxValue: number): boolean {
+export function isInRange(value: number, minValue: number, maxValue: number): boolean {
     return minValue <= value && value <= maxValue;
 }
 

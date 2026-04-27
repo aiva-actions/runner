@@ -5,7 +5,7 @@ import type { RunTestBatchResponse } from './aiva-api.ts';
 import {
     validateAivaKey,
     parseLabels,
-    isValueInRange,
+    isInRange,
     waitForBatchCompleted, AIVAOptions, AIVAReport
 } from "./helpers.ts";
 import { writeFile } from 'node:fs/promises';
@@ -29,7 +29,6 @@ program
     .option('-u --aiva-url <URL>', 'Optional, URL of AIVA instance.', 'https://api.aiva.works/')
     .addOption(new Option('-F, --result-format <format>', 'Optional, format of the batch status result.').choices(['ctrf', 'junit']))
     .option('-f --result-path <filepath>', 'Optional, where to save file with batch results.', './batch-results.json')
-    .option('-t --test-progress-timeout <seconds>', 'Optional, timeout that cancels test run if no test finished in time', '600')
     .option('-v, --verbose', 'Optional, display verbose (debug) output')
     .action(async (options) => {
         const aivaOptions: AIVAOptions = {
@@ -44,7 +43,7 @@ program
             }
         }
         
-        if (!isValueInRange(parseInt(options.pollPeriod), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
+        if (!isInRange(parseInt(options.pollPeriod), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
             program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`, {exitCode: 2});
         }
         const batchInfo: RunTestBatchResponse = await executeBatch(
