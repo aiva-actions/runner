@@ -1,5 +1,44 @@
 import type { CTRFReport, Summary, Test } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
+import {DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD} from "./constants.ts";
+import {getBatchStatus, getBatchStatusRaw} from "./aiva-api.ts";
+
+export interface AIVAOptions {
+    apiKey: string,
+    aivaUrl?: string,
+    pollPeriod?: number,
+    format?: "ctrf" | "junit"
+    verbose?: boolean,
+    logger?: AIVALogger
+}
+
+export interface AIVALogger {
+    logInfo: (message: string) => void,
+    logDebug: (message: string) => void
+}
+
+export interface AIVAReport {
+    success: boolean,
+    reportContent: string
+}
+
+export async function waitForBatchCompleted(testBatchId: string, options: AIVAOptions): Promise<AIVAReport> {
+    const aivaUrl = options.aivaUrl || DEFAULT_AIVA_URL;
+    let batchStatus: CTRFReport = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
+    while (isTestBatchRunning(batchStatus)) {
+        await sleep(options.pollPeriod || DEFAULT_POLL_PERIOD);
+        batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
+        if (options.verbose) options.logger?.logDebug(JSON.stringify(batchStatus, null, 4));
+    }
+    logBatchResults(batchStatus, options.logger);
+    let batchResult: string; 
+    if (options.format != "ctrf" || options.format != undefined) {
+        batchResult = await getBatchStatusRaw(aivaUrl, options.apiKey, testBatchId, options.format);
+    } else {
+        batchResult = JSON.stringify(batchStatus, null, 4);
+    }
+    return {success: isBatchSuccessful(batchStatus), reportContent: batchResult }
+}
 
 /** @param {string} labelsInput
  * @param dummyPrevious
@@ -85,24 +124,24 @@ function formatEpochDurationMs(startEpochMs: number, endEpochMs: number | null):
     return `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
 }
 
-export function logBatchResults(batchResults: CTRFReport): void {
+export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): void {
     const summary: Summary = batchResults.results.summary;
     const startMs: number | undefined = summary.start;
     const stopMs: number | undefined = summary.stop;
     const duration: string = startMs !== undefined && stopMs !== undefined ? formatEpochDurationMs(startMs, stopMs) : 'n/a';
     const logLine = `Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`;
-    console.log(logLine);
+    logger?.logInfo(logLine);
 }
 
-export function isBatchFailed(batchStatus: CTRFReport): boolean {
+export function isBatchSuccessful(batchStatus: CTRFReport): boolean {
     if (batchStatus?.results?.summary?.failed > 0) {
-        return true;
+        return false;
     }
     const tests: Test[] = batchStatus.results.tests;
     for (const test of tests) {
         if (test.rawStatus === 'FailedToStart') {
-            return true;
+            return false;
         }
     }
-    return false;
+    return true;
 }

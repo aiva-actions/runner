@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
-import {executeBatch, getBatchStatus, getBatchStatusRaw} from './aiva-api.ts';
+import {executeBatch} from './aiva-api.ts';
 import type { RunTestBatchResponse } from './aiva-api.ts';
-import { validateAivaKey, parseLabels, isValueInRange, sleep, isBatchFailed, isTestBatchRunning, logBatchResults, validateBatchProgress} from "./helpers.ts";
-
-"./helpers.ts";
+import {
+    validateAivaKey,
+    parseLabels,
+    isValueInRange,
+    waitForBatchCompleted, AIVAOptions, AIVAReport
+} from "./helpers.ts";
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
-import type { CTRFReport } from 'ctrf';
 import path from 'node:path';
 import { MIN_POLL_SECONDS, MAX_POLL_SECONDS } from "./constants.ts";
+
 
 const program = new Command();
 program
@@ -29,6 +32,18 @@ program
     .option('-t --test-progress-timeout <seconds>', 'Optional, timeout that cancels test run if no test finished in time', '600')
     .option('-v, --verbose', 'Optional, display verbose (debug) output')
     .action(async (options) => {
+        const aivaOptions: AIVAOptions = {
+            apiKey: options.apiKey,
+            aivaUrl: options.aivaUrl,
+            pollPeriod: 10,
+            format: options.resultFormat,
+            verbose: options.verbose,
+            logger: {
+                logDebug: (message: string): void => console.debug(message),
+                logInfo: (message: string): void => console.info(message),
+            }
+        }
+        
         if (!isValueInRange(parseInt(options.pollPeriod), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
             program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`, {exitCode: 2});
         }
@@ -44,32 +59,13 @@ program
         );
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });
 
-        let lastChangeOfPendingTests: Date | null = new Date();
-        let previousNumberOfPendingTests: number = Number.MAX_SAFE_INTEGER;
-
         spinner.start();
-        let batchStatus: CTRFReport = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
-        while (isTestBatchRunning(batchStatus)) {
-            await sleep(parseInt(options.pollPeriod));
-            batchStatus = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
-            if (options.verbose) console.debug(JSON.stringify(batchStatus, null, 4));
-            try {
-                lastChangeOfPendingTests = validateBatchProgress(previousNumberOfPendingTests, lastChangeOfPendingTests, parseInt(options.testProgressTimeout), batchStatus);
-            } catch (error) {
-                error instanceof Error ? program.error(JSON.stringify(error.message, null, 4), {exitCode: 3}) :
-                program.error(JSON.stringify(error), {exitCode: 3});
-            }
-        }
+        const report: AIVAReport = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions)
         spinner.stop();
 
-        logBatchResults(batchStatus);
-        await writeFile(path.resolve(options.resultPath), JSON.stringify(batchStatus), 'utf-8');
+        await writeFile(path.resolve(options.resultPath), report.reportContent, 'utf-8');
         
-        if (options.resultFormat != "ctrf" || options.resultFormat != undefined) {
-            const xmlBatchStatus: string = await getBatchStatusRaw(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
-            await writeFile(path.resolve(options.resultPath), xmlBatchStatus, 'utf-8');
-        }
-        if (isBatchFailed(batchStatus)) {
+        if (!report.success) {
             program.error('AIVA test batch has failed tests or tests that failed to start.', {exitCode: 1});
         }
     });
