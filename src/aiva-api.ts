@@ -66,7 +66,7 @@ export async function executeBatch (
  * @param format
  * @returns {CTRFReport} object in CTRFReport format
  */
-export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string, format: "ctrf" | "junit" | undefined): Promise<CTRFReport> {
+export async function getBatchStatusRaw(aivaUrl: string, apiKey: string, batchId: string, format: "ctrf" | "junit" | undefined): Promise <string> {
     const res: Response = await fetch(aivaUrl + '/v1/batches/' + batchId, {
         method: 'GET',
         headers: {
@@ -78,5 +78,10 @@ export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: s
         const errText = await res.text();
         throw new Error(`Batch status request failed (${res.status}): ${errText}`);
     }
-    return (await res.json()) as CTRFReport;
+    return await res.text();
+}
+
+export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string): Promise <CTRFReport> {
+    const batchStatus = await getBatchStatusRaw(aivaUrl, apiKey, batchId, "ctrf");
+    return JSON.parse(batchStatus);
 }

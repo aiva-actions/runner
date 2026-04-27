@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
-import { executeBatch, getBatchStatus } from './aiva-api.ts';
+import {executeBatch, getBatchStatus, getBatchStatusRaw} from './aiva-api.ts';
 import type { RunTestBatchResponse } from './aiva-api.ts';
 import { validateAivaKey, parseLabels, isValueInRange, sleep, isBatchFailed, isTestBatchRunning, logBatchResults, validateBatchProgress} from "./helpers.ts";
 
@@ -48,10 +48,10 @@ program
         let previousNumberOfPendingTests: number = Number.MAX_SAFE_INTEGER;
 
         spinner.start();
-        let batchStatus: CTRFReport = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
+        let batchStatus: CTRFReport = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
         while (isTestBatchRunning(batchStatus)) {
             await sleep(parseInt(options.pollPeriod));
-            batchStatus = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
+            batchStatus = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
             if (options.verbose) console.debug(JSON.stringify(batchStatus, null, 4));
             try {
                 lastChangeOfPendingTests = validateBatchProgress(previousNumberOfPendingTests, lastChangeOfPendingTests, parseInt(options.testProgressTimeout), batchStatus);
@@ -67,6 +67,11 @@ program
             console.error('AIVA test batch has failed tests or tests that failed to start.');
         }
         await writeFile(path.resolve(options.resultPath), JSON.stringify(batchStatus), 'utf-8');
+        
+        if (options.resultFormat != "ctrf" || options.resultFormat != undefined) {
+            const xmlBatchStatus: string = await getBatchStatusRaw(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
+            await writeFile(path.resolve(options.resultPath), xmlBatchStatus, 'utf-8');
+        }
     });
 
 program.parseAsync();
