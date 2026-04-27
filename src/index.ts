@@ -63,14 +63,14 @@ program
         spinner.stop();
 
         logBatchResults(batchStatus);
-        if (isBatchFailed(batchStatus)) {
-            program.error('AIVA test batch has failed tests or tests that failed to start.', {exitCode: 1});
-        }
         await writeFile(path.resolve(options.resultPath), JSON.stringify(batchStatus), 'utf-8');
         
         if (options.resultFormat != "ctrf" || options.resultFormat != undefined) {
             const xmlBatchStatus: string = await getBatchStatusRaw(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
             await writeFile(path.resolve(options.resultPath), xmlBatchStatus, 'utf-8');
+        }
+        if (isBatchFailed(batchStatus)) {
+            program.error('AIVA test batch has failed tests or tests that failed to start.', {exitCode: 1});
         }
     });
 
