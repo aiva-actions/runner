@@ -1,4 +1,4 @@
-import {CTRFReport, Summary, Test } from 'ctrf';
+import type { CTRFReport, Summary, Test } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
 
 /** @param {string} labelsInput

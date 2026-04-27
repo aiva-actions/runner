@@ -63,13 +63,14 @@ export async function executeBatch (
  * @param {string} aivaUrl
  * @param {string} apiKey
  * @param {string} batchId
+ * @param format
  * @returns {CTRFReport} object in CTRFReport format
  */
-export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string): Promise<CTRFReport> {
+export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string, format: "ctrf" | "junit" | undefined): Promise<CTRFReport> {
     const res: Response = await fetch(aivaUrl + '/v1/batches/' + batchId, {
         method: 'GET',
         headers: {
-            Accept: 'application/json',
+            Accept: format == 'junit' ? 'application/xml' : 'application/json',
             'X-API-Key': apiKey,
         },
     });

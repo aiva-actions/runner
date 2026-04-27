@@ -7,7 +7,7 @@ import { validateAivaKey, parseLabels, isValueInRange, sleep, isBatchFailed, isT
 "./helpers.ts";
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
-import { CTRFReport } from 'ctrf';
+import type { CTRFReport } from 'ctrf';
 import path from 'node:path';
 import { MIN_POLL_SECONDS, MAX_POLL_SECONDS } from "./constants.ts";
 
@@ -48,10 +48,10 @@ program
         let previousNumberOfPendingTests: number = Number.MAX_SAFE_INTEGER;
 
         spinner.start();
-        let batchStatus: CTRFReport = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
+        let batchStatus: CTRFReport = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
         while (isTestBatchRunning(batchStatus)) {
             await sleep(parseInt(options.pollPeriod));
-            batchStatus = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId);
+            batchStatus = await getBatchStatus(options.aivaUrl, options.apiKey, batchInfo.testBatchId, options.resultFormat);
             if (options.verbose) console.debug(JSON.stringify(batchStatus, null, 4));
             try {
                 lastChangeOfPendingTests = validateBatchProgress(previousNumberOfPendingTests, lastChangeOfPendingTests, parseInt(options.testProgressTimeout), batchStatus);
