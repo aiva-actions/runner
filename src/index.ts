@@ -30,7 +30,7 @@ program
     .option('-v, --verbose', 'Optional, display verbose (debug) output')
     .action(async (options) => {
         if (!isValueInRange(parseInt(options.pollPeriod), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
-            program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`);
+            program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`, {exitCode: 2});
         }
         const batchInfo: RunTestBatchResponse = await executeBatch(
             options.aivaUrl + '/v1/batches',
@@ -56,15 +56,15 @@ program
             try {
                 lastChangeOfPendingTests = validateBatchProgress(previousNumberOfPendingTests, lastChangeOfPendingTests, parseInt(options.testProgressTimeout), batchStatus);
             } catch (error) {
-                error instanceof Error ? program.error(JSON.stringify(error.message, null, 4)) :
-                program.error(JSON.stringify(error));
+                error instanceof Error ? program.error(JSON.stringify(error.message, null, 4), {exitCode: 3}) :
+                program.error(JSON.stringify(error), {exitCode: 3});
             }
         }
         spinner.stop();
 
         logBatchResults(batchStatus);
         if (isBatchFailed(batchStatus)) {
-            console.error('AIVA test batch has failed tests or tests that failed to start.');
+            program.error('AIVA test batch has failed tests or tests that failed to start.', {exitCode: 1});
         }
         await writeFile(path.resolve(options.resultPath), JSON.stringify(batchStatus), 'utf-8');
         
