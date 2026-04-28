@@ -6,8 +6,9 @@ import {
     validateAivaKey,
     parseLabels,
     isInRange,
-    waitForBatchCompleted, AIVAOptions, AIVAReport
+    waitForBatchCompleted 
 } from "./helpers.ts";
+import type { AIVAOptions, AIVAReport } from "./helpers.ts";
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
 import path from 'node:path';
