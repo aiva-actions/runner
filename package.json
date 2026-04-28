@@ -43,5 +43,14 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "ctrf": "^0.2.0"
-  }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/helpers.d.ts",
+      "import": "./dist/helpers.js"
+    }
+  },
+  "files": [
+    "dist"
+  ]
 }

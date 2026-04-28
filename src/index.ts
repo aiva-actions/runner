@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
-import {executeBatch} from './aiva-api.ts';
-import type { RunTestBatchResponse } from './aiva-api.ts';
+import {executeBatch} from './aiva-api.js';
+import type { RunTestBatchResponse } from './aiva-api.js';
 import {
     validateAivaKey,
     parseLabels,
     isInRange,
     waitForBatchCompleted 
-} from "./helpers.ts";
+} from "./helpers.js";
 import type { AIVAOptions, AIVAReport } from "./helpers.ts";
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
 import path from 'node:path';
-import { MIN_POLL_SECONDS, MAX_POLL_SECONDS } from "./constants.ts";
+import { MIN_POLL_SECONDS, MAX_POLL_SECONDS } from "./constants.js";
 
 
 const program = new Command();

@@ -1,7 +1,7 @@
 import type { CTRFReport, Summary, Test } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
-import {DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD} from "./constants.ts";
-import {getBatchStatus, getBatchStatusRaw} from "./aiva-api.ts";
+import {DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD} from "./constants.js";
+import {getBatchStatus, getBatchStatusRaw} from "./aiva-api.js";
 
 export interface AIVAOptions {
     apiKey: string,
