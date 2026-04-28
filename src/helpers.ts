@@ -105,6 +105,7 @@ function formatEpochDurationMs(startEpochMs: number, endEpochMs: number | null):
 }
 
 export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): void {
+    logger?.logDebug(JSON.stringify(batchResults));
     const summary: Summary = batchResults.results.summary;
     const startMs: number | undefined = summary.start;
     const stopMs: number | undefined = summary.stop;
