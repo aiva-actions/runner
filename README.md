@@ -19,6 +19,13 @@ npx runner --help
 npx runner -l some;labels -k <AIVA_API_KEY>
 ```
 
+## Library usage
+You can also import helpers and API functions from the package:
+
+```ts
+import { executeBatch, waitForBatchCompleted, parseLabels } from 'runner';
+```
+
 ## Development
 Just clone [the repository](https://github.com/aiva-actions/run)
 

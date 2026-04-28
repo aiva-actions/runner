@@ -17,14 +17,14 @@
   "license": "MIT",
   "author": "Vaclav Hodina (vaclav.hodina@ysoft.com)",
   "type": "module",
-  "main": "index.ts",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts",
+    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts && npx tsc --project tsconfig.build.json",
     "prepare": "npm run build"
   },
   "bin": {
-    "runner": "./dist/index.js"
+    "runner": "./dist/cli.js"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
@@ -46,8 +46,8 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/helpers.d.ts",
-      "import": "./dist/helpers.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "files": [
