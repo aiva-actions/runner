@@ -22,6 +22,13 @@ export interface AIVAReport {
     reportContent: string
 }
 
+export interface AIVAErrorResponse {
+    type: string;
+    title: string;
+    status: number;
+    errors: Record<string, string[]>;
+}
+
 export async function waitForBatchCompleted(testBatchId: string, options: AIVAOptions): Promise<AIVAReport> {
     const aivaUrl = options.aivaUrl || DEFAULT_AIVA_URL;
     let batchStatus: CTRFReport = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
@@ -53,7 +60,7 @@ export function parseLabels(labelsInput: string, dummyPrevious: string[]): strin
         .filter((label: string) => label.length > 0);
 
     if (labels.length === 0) {
-        throw new Error('At least one non-empty label must be specified.');
+        throw new InvalidOptionArgumentError('At least one non-empty label must be specified.');
     }
     return labels;
 }

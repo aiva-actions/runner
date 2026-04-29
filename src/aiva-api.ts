@@ -1,4 +1,5 @@
 import type { CTRFReport } from 'ctrf';
+import {AIVAErrorResponse} from "./helpers.js";
 
 export interface RunTestBatchResponse {
     testBatchId: string;
@@ -25,7 +26,7 @@ export async function executeBatch (
     variableOverridesPerTest: object | null,
     gatewayName: string | undefined,
 ): Promise<RunTestBatchResponse> {
-    console.log('Executing test batch containing tests labeled with: ' + labels);
+    console.log('Executing test batch containing tests with labels: ' + labels);
 
     const res: Response = await fetch(apiUrl, {
         method: 'POST',
@@ -45,8 +46,8 @@ export async function executeBatch (
     });
 
     if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`AIVA batch request failed (${res.status}): ${errText}`);
+        const errText = (await res.json()) as AIVAErrorResponse;
+        throw new Error(`AIVA batch request failed (${res.status}): ${errText.errors}`);
     }
 
     console.log(`AIVA batch request accepted (${res.status})`);
@@ -75,8 +76,8 @@ export async function getBatchStatusRaw(aivaUrl: string, apiKey: string, batchId
         },
     });
     if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Batch status request failed (${res.status}): ${errText}`);
+        const errText = (await res.json()) as AIVAErrorResponse;
+        throw new Error(`Batch status request failed (${res.status}): ${errText.errors}`);
     }
     return await res.text();
 }
