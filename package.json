@@ -21,7 +21,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts && npx tsc --project tsconfig.build.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "lint": "eslint src",
+    "lint-fix": "eslint --fix src"
   },
   "bin": {
     "runner": "./dist/cli.js"
@@ -41,8 +43,15 @@
     "yocto-spinner": "^1.1.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.6.0",
-    "ctrf": "^0.2.0"
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "ctrf": "^0.2.0",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.3"
   },
   "exports": {
     ".": {

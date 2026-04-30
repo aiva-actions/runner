@@ -1,25 +1,27 @@
 import type { CTRFReport, Summary, Test } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
-import {DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD} from "./constants.js";
-import {getBatchStatus, getBatchStatusRaw} from "./aiva-api.js";
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
+import { DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD } from './constants.js';
+import { getBatchStatus, getBatchStatusRaw } from './aiva-api.js';
 
 export interface AIVAOptions {
-    apiKey: string,
-    aivaUrl?: string,
-    pollPeriod?: number,
-    format?: "ctrf" | "junit"
-    verbose?: boolean,
-    logger?: AIVALogger
+    apiKey: string;
+    aivaUrl?: string;
+    pollPeriod?: number;
+    format?: 'ctrf' | 'junit';
+    verbose?: boolean;
+    logger?: AIVALogger;
 }
 
 export interface AIVALogger {
-    logInfo: (message: string) => void,
-    logDebug: (message: string) => void
+    logInfo: (message: string) => void;
+    logDebug: (message: string) => void;
 }
 
 export interface AIVAReport {
-    success: boolean,
-    reportContent: string
+    success: boolean;
+    reportContent: string;
 }
 
 export interface AIVAErrorResponse {
@@ -38,19 +40,21 @@ export async function waitForBatchCompleted(testBatchId: string, options: AIVAOp
         if (options.verbose) options.logger?.logDebug(JSON.stringify(batchStatus, null, 4));
     }
     logBatchResults(batchStatus, options.logger);
-    let batchResult: string; 
-    if (options.format != "ctrf" || options.format != undefined) {
+    let batchResult: string;
+    if (options.format != 'ctrf' || options.format != undefined) {
         batchResult = await getBatchStatusRaw(aivaUrl, options.apiKey, testBatchId, options.format);
     } else {
         batchResult = JSON.stringify(batchStatus, null, 4);
     }
-    return {success: isBatchSuccessful(batchStatus), reportContent: batchResult }
+    return { success: isBatchSuccessful(batchStatus), reportContent: batchResult };
 }
 
 /** @param {string} labelsInput
- * @param dummyPrevious
+ * @param dummyPrevious - dummyPrevious argument is here for compatibility with commander option parsing. Without it
+ * parseLabels could not be used as a parsing function in commander.
  */
-export function parseLabels(labelsInput: string, dummyPrevious: string[]): string[]{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- commander option parser passes previous value
+export function parseLabels(labelsInput: string, dummyPrevious: string[]): string[] {
     if (labelsInput.length == 0) {
         throw new InvalidOptionArgumentError('Choose at least one label to execute tests.');
     }
@@ -65,14 +69,49 @@ export function parseLabels(labelsInput: string, dummyPrevious: string[]): strin
     return labels;
 }
 
-export function validateAivaKey(key:string , dummyPrevious: string): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- commander option parser passes previous value
+export function validateAivaKey(key: string, dummyPrevious: string): string {
     if (key.length == 0) {
         throw new InvalidOptionArgumentError('Add an AIVA API Key via "-k <API_KEY>, so you can access the AIVA API.');
     }
     if (!key.includes('aiva_')) {
         throw new InvalidOptionArgumentError('Incorrect format of AIVA API Key. Correct format: "aiva_..."');
     }
-    return key
+    return key;
+}
+
+/**
+ * Ensures the output path is usable: parent directory exists, and if the path
+ * already exists it must be a regular file (not a directory).
+ */
+export async function validateResultPath(filePath: string): Promise<void> {
+    const resolved = path.resolve(filePath);
+    const parent = path.dirname(resolved);
+    let parentStat;
+    try {
+        parentStat = await stat(parent);
+    } catch (e) {
+        const err = e as NodeJS.ErrnoException;
+        if (err.code === 'ENOENT') {
+            throw new Error(`Result path directory does not exist: ${parent}`, { cause: e });
+        }
+        throw e;
+    }
+    if (!parentStat.isDirectory()) {
+        throw new Error(`Result path parent is not a directory: ${parent}`);
+    }
+    try {
+        const targetStat = await stat(resolved);
+        if (targetStat.isDirectory()) {
+            throw new Error(`Result path is a directory, expected a file path: ${resolved}`);
+        }
+    } catch (e) {
+        const err = e as NodeJS.ErrnoException;
+        if (err.code === 'ENOENT') {
+            return;
+        }
+        throw e;
+    }
 }
 
 /**
@@ -83,7 +122,7 @@ export function sleep(seconds: number): Promise<void> {
 }
 
 /**
- * @param batchStatusResponse
+ * @param batchStatusResponse - Response of AIVA API Get Batch Status call in CTRF format
  * @returns {Boolean} True if there are no more pending tests
  */
 export function isTestBatchRunning(batchStatusResponse: CTRFReport): boolean {
@@ -112,7 +151,6 @@ function formatEpochDurationMs(startEpochMs: number, endEpochMs: number | null):
 }
 
 export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): void {
-    logger?.logDebug(JSON.stringify(batchResults));
     const summary: Summary = batchResults.results.summary;
     const startMs: number | undefined = summary.start;
     const stopMs: number | undefined = summary.stop;
