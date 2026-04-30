@@ -41,10 +41,10 @@ export async function waitForBatchCompleted(testBatchId: string, options: AIVAOp
     }
     logBatchResults(batchStatus, options.logger);
     let batchResult: string;
-    if (options.format != 'ctrf' || options.format != undefined) {
-        batchResult = await getBatchStatusRaw(aivaUrl, options.apiKey, testBatchId, options.format);
-    } else {
+    if (options.format == 'ctrf' || options.format == undefined) {
         batchResult = JSON.stringify(batchStatus, null, 4);
+    } else {
+        batchResult = await getBatchStatusRaw(aivaUrl, options.apiKey, testBatchId, options.format);
     }
     return { success: isBatchSuccessful(batchStatus), reportContent: batchResult };
 }
