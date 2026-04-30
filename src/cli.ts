@@ -61,7 +61,7 @@ program
             program.error(e instanceof Error ? e.message : String(e), { exitCode: 2 });
         }
         const batchInfo: RunTestBatchResponse = await executeBatch(
-            options.aivaUrl + '/v1/batches',
+            options.aivaUrl,
             options.apiKey,
             options.labels,
             options.maxNumberOfAgents,
