@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
 import { executeBatch } from './aiva-api.js';
-import type { RunTestBatchResponse } from './aiva-api.js';
-import { validateAivaKey, parseLabels, isInRange, waitForBatchCompleted, validateResultPath } from './helpers.js';
-import type { AIVAOptions, AIVAReport } from './helpers.js';
+import { validateAivaApiKey, parseLabels, isInRange, waitForBatchCompleted, validateResultPath } from './helpers.js';
+import type { AIVAOptions} from './helpers.js';
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
 import path from 'node:path';
@@ -14,7 +13,7 @@ program
     .name('runner')
     .version('0.0.1')
     .description('Runner for AIVA tests.')
-    .requiredOption('-k, --api-key <key>', 'AIVA API Key', validateAivaKey, '')
+    .requiredOption('-k, --api-key <key>', 'AIVA API Key', validateAivaApiKey, '')
     .requiredOption(
         '-l, --labels <labels>',
         'Semicolon-separated labels that select which tests run (e.g. smoke;regression). At least one non-empty label is required after splitting.',

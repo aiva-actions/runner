@@ -1,4 +1,4 @@
-import type { CTRFReport, Summary, Test } from 'ctrf';
+import type { CTRFReport, Summary } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -70,7 +70,7 @@ export function parseLabels(labelsInput: string, dummyPrevious: string[]): strin
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- commander option parser passes previous value
-export function validateAivaKey(key: string, dummyPrevious: string): string {
+export function validateAivaApiKey(key: string, dummyPrevious: string): string {
     if (key.length == 0) {
         throw new InvalidOptionArgumentError('Add an AIVA API Key via "-k <API_KEY>, so you can access the AIVA API.');
     }
@@ -88,29 +88,22 @@ export async function validateResultPath(filePath: string): Promise<void> {
     const resolved = path.resolve(filePath);
     const parent = path.dirname(resolved);
     let parentStat;
+    let resolvedStat;
     try {
         parentStat = await stat(parent);
+        resolvedStat = await stat(resolved);
     } catch (e) {
         const err = e as NodeJS.ErrnoException;
         if (err.code === 'ENOENT') {
-            throw new Error(`Result path directory does not exist: ${parent}`, { cause: e });
+            throw new Error(`Result ${filePath} path does not exist.`, { cause: e });
         }
         throw e;
     }
     if (!parentStat.isDirectory()) {
         throw new Error(`Result path parent is not a directory: ${parent}`);
     }
-    try {
-        const targetStat = await stat(resolved);
-        if (targetStat.isDirectory()) {
-            throw new Error(`Result path is a directory, expected a file path: ${resolved}`);
-        }
-    } catch (e) {
-        const err = e as NodeJS.ErrnoException;
-        if (err.code === 'ENOENT') {
-            return;
-        }
-        throw e;
+    if (resolvedStat.isDirectory()) {
+        throw new Error(`Path ${filePath} is a directory, not a file`)
     }
 }
 
@@ -134,22 +127,6 @@ export function isInRange(value: number, minValue: number, maxValue: number): bo
     return minValue <= value && value <= maxValue;
 }
 
-/**
- * @param startEpochMs - Unix epoch milliseconds (e.g. Date.getTime())
- * @param endEpochMs - Unix epoch milliseconds
- * @returns Duration as "Xh YYm ZZs" with minutes and seconds zero-padded to 2 digits
- */
-function formatEpochDurationMs(startEpochMs: number, endEpochMs: number | null): string {
-    if (endEpochMs == null) {
-        return 'n/a';
-    }
-    const totalSec = Math.floor(Math.abs(endEpochMs - startEpochMs) / 1000);
-    const hours = Math.floor(totalSec / 3600);
-    const minutes = Math.floor((totalSec % 3600) / 60);
-    const seconds = totalSec % 60;
-    return `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
-}
-
 export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): void {
     const summary: Summary = batchResults.results.summary;
     const startMs: number | undefined = summary.start;
@@ -164,6 +141,21 @@ export function isBatchSuccessful(batchStatus: CTRFReport): boolean {
         return false;
     }
     const tests = batchStatus.results.tests;
-return tests.every(test => test.rawStatus !== 'FailedToStart');
-    return true;
+    return tests.every(test => test.rawStatus !== 'FailedToStart');
+}
+
+/**
+ * @param startEpochMs - Unix epoch milliseconds (e.g. Date.getTime())
+ * @param endEpochMs - Unix epoch milliseconds
+ * @returns Duration as "Xh YYm ZZs" with minutes and seconds zero-padded to 2 digits
+ */
+function formatEpochDurationMs(startEpochMs: number, endEpochMs: number | null): string {
+    if (endEpochMs == null) {
+        return 'n/a';
+    }
+    const totalSec = Math.floor(Math.abs(endEpochMs - startEpochMs) / 1000);
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+    return `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
 }
