@@ -163,11 +163,7 @@ export function isBatchSuccessful(batchStatus: CTRFReport): boolean {
     if (batchStatus?.results?.summary?.failed > 0) {
         return false;
     }
-    const tests: Test[] = batchStatus.results.tests;
-    for (const test of tests) {
-        if (test.rawStatus === 'FailedToStart') {
-            return false;
-        }
-    }
+    const tests = batchStatus.results.tests;
+return tests.every(test => test.rawStatus !== 'FailedToStart');
     return true;
 }
