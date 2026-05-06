@@ -26,7 +26,23 @@ export async function executeBatch(
     variableOverridesPerTest: object | undefined,
     gatewayName: string | undefined,
 ): Promise<RunTestBatchResponse> {
-    console.log('Executing test batch containing tests with labels: ' + labels);
+    console.log(
+        'Executing test batch with following parameters',
+        JSON.stringify(
+            {
+                apiUrl,
+                apiKey,
+                labels,
+                maxNumberOfAgents,
+                batchName,
+                globalVariableOverrides,
+                variableOverridesPerTest,
+                gatewayName,
+            },
+            null,
+            4,
+        ),
+    );
     let res: Response;
 
     try {

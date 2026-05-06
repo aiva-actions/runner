@@ -1,5 +1,6 @@
 import type { CTRFReport, Summary } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
+import type { PathLike } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { DEFAULT_AIVA_URL, DEFAULT_POLL_PERIOD } from './constants.js';
@@ -92,18 +93,28 @@ export async function validateResultPath(filePath: string): Promise<void> {
     try {
         parentStat = await stat(parent);
         resolvedStat = await stat(resolved);
+        if (!parentStat.isDirectory()) {
+            throw new Error(`Result path parent is not a directory: ${parent}`);
+        }
+        if (resolvedStat.isDirectory()) {
+            throw new Error(`Path ${filePath} is a directory, not a file`);
+        }
     } catch (e) {
         const err = e as NodeJS.ErrnoException;
-        if (err.code === 'ENOENT') {
-            throw new Error(`Result ${filePath} path does not exist.`, { cause: e });
+        if (err.code != 'ENOENT') {
+            throw e;
         }
-        throw e;
     }
-    if (!parentStat.isDirectory()) {
-        throw new Error(`Result path parent is not a directory: ${parent}`);
-    }
-    if (resolvedStat.isDirectory()) {
-        throw new Error(`Path ${filePath} is a directory, not a file`)
+}
+
+export function getResultFormatByPath(filePath: PathLike): 'ctrf' | 'junit' {
+    const extension = path.extname(String(filePath)).toLowerCase();
+    if (extension === '.json') {
+        return 'ctrf';
+    } else if (extension === '.xml') {
+        return 'junit';
+    } else {
+        return 'ctrf';
     }
 }
 
@@ -141,7 +152,7 @@ export function isBatchSuccessful(batchStatus: CTRFReport): boolean {
         return false;
     }
     const tests = batchStatus.results.tests;
-    return tests.every(test => test.rawStatus !== 'FailedToStart');
+    return tests.every((test) => test.rawStatus !== 'FailedToStart');
 }
 
 /**

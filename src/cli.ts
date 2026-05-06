@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
 import { executeBatch } from './aiva-api.js';
-import { validateAivaApiKey, parseLabels, isInRange, waitForBatchCompleted, validateResultPath } from './helpers.js';
-import type { AIVAOptions} from './helpers.js';
+import { validateAivaApiKey, parseLabels, isInRange, waitForBatchCompleted, validateResultPath, getResultFormatByPath } from './helpers.js';
+import type { AIVAOptions } from './helpers.js';
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
 import path from 'node:path';
@@ -42,7 +42,7 @@ program
             apiKey: options.apiKey,
             aivaUrl: options.aivaUrl,
             pollPeriod: parseInt(options.pollPeriod),
-            format: options.resultFormat,
+            format: options.resultFormat ? options.resultFormat : getResultFormatByPath(options.resultPath),
             verbose: options.verbose,
             logger: {
                 logDebug: (message: string): void => console.debug(message),
