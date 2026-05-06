@@ -79,7 +79,7 @@ program
         await writeFile(path.resolve(options.resultPath), report.reportContent, 'utf-8');
 
         if (!report.success) {
-            program.error('AIVA test batch has failed tests or tests that failed to start.', { exitCode: 1 });
+            program.error('Batch failed due to failed tests.', { exitCode: 1 });
         }
     });
 
