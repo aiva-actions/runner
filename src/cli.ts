@@ -60,7 +60,7 @@ program
         } catch (e) {
             program.error(e instanceof Error ? e.message : String(e), { exitCode: 2 });
         }
-        const batchInfo: RunTestBatchResponse = await executeBatch(
+        const batchInfo = await executeBatch(
             options.aivaUrl,
             options.apiKey,
             options.labels,
@@ -73,7 +73,7 @@ program
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });
 
         spinner.start();
-        const report: AIVAReport = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions);
+        const report = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions);
         spinner.stop();
 
         await writeFile(path.resolve(options.resultPath), report.reportContent, 'utf-8');
