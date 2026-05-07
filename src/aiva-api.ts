@@ -1,5 +1,6 @@
 import type { CTRFReport } from 'ctrf';
-import { AIVAErrorResponse } from './helpers.js';
+import { AIVAErrorResponse, sleep } from './helpers.js';
+import { GET_BATCH_STATUS_RETRY_DELAY_SECONDS } from './constants.js';
 
 export interface RunTestBatchResponse {
     testBatchId: string;
@@ -26,23 +27,7 @@ export async function executeBatch(
     variableOverridesPerTest: object | undefined,
     gatewayName: string | undefined,
 ): Promise<RunTestBatchResponse> {
-    console.log(
-        'Executing test batch with following parameters',
-        JSON.stringify(
-            {
-                apiUrl,
-                apiKey,
-                labels,
-                maxNumberOfAgents,
-                batchName,
-                globalVariableOverrides,
-                variableOverridesPerTest,
-                gatewayName,
-            },
-            null,
-            4,
-        ),
-    );
+    console.log('Executing test batch with following parameters');
     let res: Response;
 
     try {
@@ -105,6 +90,12 @@ export async function getBatchStatusRaw(apiUrl: string, apiKey: string, batchId:
 }
 
 export async function getBatchStatus(aivaUrl: string, apiKey: string, batchId: string): Promise<CTRFReport> {
-    const batchStatus = await getBatchStatusRaw(aivaUrl, apiKey, batchId, 'ctrf');
+    let batchStatus: string;
+    try {
+        batchStatus = await getBatchStatusRaw(aivaUrl, apiKey, batchId, 'ctrf');
+    } catch {
+        await sleep(GET_BATCH_STATUS_RETRY_DELAY_SECONDS);
+        batchStatus = await getBatchStatusRaw(aivaUrl, apiKey, batchId, 'ctrf');
+    }
     return JSON.parse(batchStatus);
 }

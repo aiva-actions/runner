@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 import { Command, Option } from '@commander-js/extra-typings';
 import { executeBatch } from './aiva-api.js';
-import { validateAivaApiKey, parseLabels, isInRange, waitForBatchCompleted, validateResultPath, getResultFormatByPath } from './helpers.js';
+import {
+    validateAivaApiKey,
+    parseLabels,
+    isInRange,
+    waitForBatchCompleted,
+    validateResultPath,
+    getResultFormatByPath,
+    fixDefaultReportPathExtension,
+} from './helpers.js';
 import type { AIVAOptions } from './helpers.js';
 import { writeFile } from 'node:fs/promises';
 import yoctoSpinner from 'yocto-spinner';
@@ -59,6 +67,20 @@ program
         } catch (e) {
             program.error(e instanceof Error ? e.message : String(e), { exitCode: 2 });
         }
+        options.resultPath = fixDefaultReportPathExtension(options.resultFormat, options.resultPath, aivaOptions.logger);
+        aivaOptions.logger?.logInfo(`Executing test batch ${options.batchName} on ${options.aivaUrl} with parameters:
+        ${JSON.stringify(
+            {
+                aivaUrl: options.aivaUrl,
+                labels: options.labels,
+                maxNumberOfAgents: options.maxNumberOfAgents,
+                globalOverrides: options.globalVariablesOverrides,
+                perTestOverrides: options.variablesOverridesPerTest,
+                gatewayName: options.gatewayName,
+            },
+            null,
+            4,
+        )}`);
         const batchInfo = await executeBatch(
             options.aivaUrl,
             options.apiKey,

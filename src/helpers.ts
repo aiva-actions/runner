@@ -34,7 +34,7 @@ export interface AIVAErrorResponse {
 
 export async function waitForBatchCompleted(testBatchId: string, options: AIVAOptions): Promise<AIVAReport> {
     const aivaUrl = options.aivaUrl || DEFAULT_AIVA_URL;
-    let batchStatus: CTRFReport = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
+    let batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
     while (isTestBatchRunning(batchStatus)) {
         await sleep(options.pollPeriod || DEFAULT_POLL_PERIOD);
         batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
@@ -59,7 +59,7 @@ export function parseLabels(labelsInput: string, dummyPrevious: string[]): strin
     if (labelsInput.length == 0) {
         throw new InvalidOptionArgumentError('Choose at least one label to execute tests.');
     }
-    const labels: string[] = labelsInput
+    const labels = labelsInput
         .split(';')
         .map((s: string): string => s.trim())
         .filter((label: string) => label.length > 0);
@@ -93,17 +93,17 @@ export async function validateResultPath(filePath: string): Promise<void> {
     try {
         parentStat = await stat(parent);
         resolvedStat = await stat(resolved);
-        if (!parentStat.isDirectory()) {
-            throw new Error(`Result path parent is not a directory: ${parent}`);
-        }
-        if (resolvedStat.isDirectory()) {
-            throw new Error(`Path ${filePath} is a directory, not a file`);
-        }
     } catch (e) {
         const err = e as NodeJS.ErrnoException;
         if (err.code != 'ENOENT') {
             throw e;
         }
+    }
+    if (!parentStat || !parentStat.isDirectory()) {
+        throw new Error(`Result path parent is not a directory or doesn't exist: ${parent}`);
+    }
+    if (resolvedStat && resolvedStat.isDirectory()) {
+        throw new Error(`Path ${filePath} is a directory, not a file`);
     }
 }
 
@@ -118,6 +118,15 @@ export function getResultFormatByPath(filePath: PathLike): 'ctrf' | 'junit' {
     }
 }
 
+export function fixDefaultReportPathExtension(format: string | undefined, filePath: PathLike, logger: AIVALogger | undefined): string {
+    const extension = path.extname(String(filePath)).toLowerCase();
+    if (format === 'junit' && extension === '.json') {
+        logger?.logInfo('Changed report file extenstion to ".xml" from ".json" to match JUnit format.');
+        return String(filePath).replace('.json', '.xml');
+    }
+    return filePath as string;
+}
+
 /**
  * @param seconds How long to sleep for in seconds.
  */
@@ -130,7 +139,7 @@ export function sleep(seconds: number): Promise<void> {
  * @returns {Boolean} True if there are no more pending tests
  */
 export function isTestBatchRunning(batchStatusResponse: CTRFReport): boolean {
-    const pending: number = batchStatusResponse?.results?.summary?.pending ?? 0;
+    const pending = batchStatusResponse?.results?.summary?.pending ?? 0;
     return pending > 0;
 }
 
@@ -142,7 +151,7 @@ export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): 
     const summary: Summary = batchResults.results.summary;
     const startMs: number | undefined = summary.start;
     const stopMs: number | undefined = summary.stop;
-    const duration: string = startMs !== undefined && stopMs !== undefined ? formatEpochDurationMs(startMs, stopMs) : 'n/a';
+    const duration = startMs !== undefined && stopMs !== undefined ? formatEpochDurationMs(startMs, stopMs) : 'n/a';
     const logLine = `Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`;
     logger?.logInfo(logLine);
 }
