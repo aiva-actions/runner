@@ -31,7 +31,7 @@ export async function executeBatch(
     let res: Response;
 
     try {
-        res = await fetch(apiUrl + '/v1/batches', {
+        res = await fetch(new URL('/v1/batches', apiUrl), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export async function executeBatch(
 export async function getBatchStatusRaw(apiUrl: string, apiKey: string, batchId: string, format: 'ctrf' | 'junit' | undefined): Promise<string> {
     let res: Response;
     try {
-        res = await fetch(`${apiUrl}/v1/batches/${batchId}`, {
+        res = await fetch(new URL(`/v1/batches/${batchId}`, apiUrl), {
             method: 'GET',
             headers: {
                 Accept: format == 'junit' ? 'application/xml' : 'application/json',

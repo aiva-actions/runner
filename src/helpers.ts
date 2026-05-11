@@ -75,7 +75,7 @@ export function validateAivaApiKey(key: string, dummyPrevious: string): string {
     if (key.length == 0) {
         throw new InvalidOptionArgumentError('Add an AIVA API Key via "-k <API_KEY>, so you can access the AIVA API.');
     }
-    if (!key.includes('aiva_')) {
+    if (!key.startsWith('aiva_')) {
         throw new InvalidOptionArgumentError('Incorrect format of AIVA API Key. Correct format: "aiva_..."');
     }
     return key;

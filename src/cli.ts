@@ -9,6 +9,7 @@ import {
     validateResultPath,
     getResultFormatByPath,
     createReportFilePath,
+    AIVAReport,
 } from './helpers.js';
 import type { AIVAOptions } from './helpers.js';
 import { writeFile } from 'node:fs/promises';
@@ -93,8 +94,12 @@ program
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });
 
         spinner.start();
-        const report = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions);
-        spinner.stop();
+        let report: AIVAReport;
+        try {
+            report = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions);
+        } finally {
+            spinner.stop();
+        }
 
         options.resultPath = createReportFilePath(options.resultFormat, options.resultPath, aivaOptions.logger);
         await writeFile(path.resolve(options.resultPath), report.reportContent, 'utf-8');
