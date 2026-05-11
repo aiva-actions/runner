@@ -8,7 +8,7 @@ import {
     waitForBatchCompleted,
     validateResultPath,
     getResultFormatByPath,
-    fixDefaultReportPathExtension,
+    createReportFilePath,
 } from './helpers.js';
 import type { AIVAOptions } from './helpers.js';
 import { writeFile } from 'node:fs/promises';
@@ -67,7 +67,6 @@ program
         } catch (e) {
             program.error(e instanceof Error ? e.message : String(e), { exitCode: 2 });
         }
-        options.resultPath = fixDefaultReportPathExtension(options.resultFormat, options.resultPath, aivaOptions.logger);
         aivaOptions.logger?.logInfo(`Executing test batch ${options.batchName} on ${options.aivaUrl} with parameters:
         ${JSON.stringify(
             {
@@ -97,6 +96,7 @@ program
         const report = await waitForBatchCompleted(batchInfo.testBatchId, aivaOptions);
         spinner.stop();
 
+        options.resultPath = createReportFilePath(options.resultFormat, options.resultPath, aivaOptions.logger);
         await writeFile(path.resolve(options.resultPath), report.reportContent, 'utf-8');
 
         if (!report.success) {

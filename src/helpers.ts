@@ -118,7 +118,7 @@ export function getResultFormatByPath(filePath: PathLike): 'ctrf' | 'junit' {
     }
 }
 
-export function fixDefaultReportPathExtension(format: string | undefined, filePath: PathLike, logger: AIVALogger | undefined): string {
+export function createReportFilePath(format: string | undefined, filePath: PathLike, logger: AIVALogger | undefined): string {
     const extension = path.extname(String(filePath)).toLowerCase();
     if (format === 'junit' && extension === '.json') {
         logger?.logInfo('Changed report file extenstion to ".xml" from ".json" to match JUnit format.');
