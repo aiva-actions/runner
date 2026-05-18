@@ -7,6 +7,7 @@ import {
     isInRange,
     waitForBatchCompleted,
     validateResultPath,
+    validateVariablesOverrides,
     getResultFormatByPath,
     createReportFilePath,
     AIVAReport,
@@ -30,11 +31,15 @@ program
     )
     .option('-n, --max-number-of-agents <number>', 'Optional, Maximum number of agents the batch may use.', '1')
     .option('-b, --batch-name <name>', 'Optional, custom batch name.', '')
-    .option('--global-variables-overrides <JSON>', 'Optional, JSON object applied to all tests in the batch {"username": "testuser"}', '{}')
+    .option(
+        '--global-variables-overrides <JSON>',
+        'Optional, JSON object applied to all tests in the batch {"username": "testuser"}',
+        validateVariablesOverrides,
+    )
     .option(
         '--variables-overrides-per-test <JSON>',
         'Optional, JSON object mapping test IDs to variable overrides. {"123e4567-e89b-12d3-a456-426614174000": { "user": "otheruser", "label": "success" }}',
-        '{}',
+        validateVariablesOverrides,
     )
     .option('-g, --gateway-name <gateway-name>', 'Optional, Gateway name used by aiva-node during the test.')
     .option('-p, --poll-period <seconds>', 'Optional, Seconds to wait between status polls. Must be between 5 and 60.', '10')
@@ -87,8 +92,8 @@ program
             options.labels,
             options.maxNumberOfAgents,
             options.batchName,
-            JSON.parse(options.globalVariablesOverrides),
-            JSON.parse(options.variablesOverridesPerTest),
+            options.globalVariablesOverrides ? JSON.parse(options.globalVariablesOverrides) : undefined,
+            options.variablesOverridesPerTest ? JSON.parse(options.variablesOverridesPerTest) : undefined,
             options.gatewayName,
         );
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });

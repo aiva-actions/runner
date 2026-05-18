@@ -81,6 +81,11 @@ export function validateAivaApiKey(key: string, dummyPrevious: string): string {
     return key;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- commander option parser passes previous value
+export function validateVariablesOverrides(key: string, dummyPrevious: string): string {
+    return key === '' ? '{}' : key;
+}
+
 /**
  * Ensures the output path is usable: parent directory exists, and if the path
  * already exists it must be a regular file (not a directory).
