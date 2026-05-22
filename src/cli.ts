@@ -24,11 +24,12 @@ program
     .version('0.0.1')
     .description('Runner for AIVA tests.')
     .requiredOption('-k, --api-key <key>', 'AIVA API Key', validateAivaApiKey, '')
-    .requiredOption(
+    .option(
         '-l, --labels <labels>',
-        'Semicolon-separated labels that select which tests run (e.g. smoke;regression). At least one non-empty label is required after splitting.',
+        'Semicolon-separated labels that select which tests run (e.g. smoke;regression). Required unless --batch-id is provided.',
         parseLabels,
     )
+    .option('--batch-id <id>', 'Optional, run a specific batch by its ID instead of selecting tests by labels.')
     .option('-n, --max-number-of-agents <number>', 'Optional, Maximum number of agents the batch may use.', '1')
     .option('-b, --batch-name <name>', 'Optional, custom batch name.', '')
     .option(
@@ -64,6 +65,10 @@ program
             },
         };
 
+        if (!options.labels && !options.batchId) {
+            program.error('Either --labels or --batch-id must be provided.', { exitCode: 2 });
+        }
+
         if (!isInRange(parseInt(options.pollPeriod, 10), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
             program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`, { exitCode: 2 });
         }
@@ -77,6 +82,7 @@ program
         ${JSON.stringify(
             {
                 aivaUrl: options.aivaUrl,
+                batchId: options.batchId,
                 labels: options.labels,
                 maxNumberOfAgents: options.maxNumberOfAgents,
                 globalOverrides: options.globalVariablesOverrides,
@@ -95,6 +101,7 @@ program
             options.globalVariablesOverrides ? JSON.parse(options.globalVariablesOverrides) : undefined,
             options.variablesOverridesPerTest ? JSON.parse(options.variablesOverridesPerTest) : undefined,
             options.gatewayName,
+            options.batchId,
         );
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });
 

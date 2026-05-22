@@ -26,6 +26,7 @@ export async function executeBatch(
     globalVariableOverrides: object | undefined,
     variableOverridesPerTest: object | undefined,
     gatewayName: string | undefined,
+    batchId: string | undefined,
 ): Promise<RunTestBatchResponse> {
     console.log('Executing test batch with following parameters');
     let res: Response;
@@ -45,6 +46,7 @@ export async function executeBatch(
                 globalVariablesOverrides: globalVariableOverrides,
                 variablesOverridesPerTest: variableOverridesPerTest,
                 gatewayName: gatewayName,
+                batchId: batchId,
             }),
         });
     } catch (err) {
