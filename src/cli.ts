@@ -30,7 +30,7 @@ program
         parseLabels,
     )
     .option('--batch-id <id>', 'Optional, run a specific batch by its ID instead of selecting tests by labels.')
-    .option('-n, --max-number-of-agents <number>', 'Optional, Maximum number of agents the batch may use.', '1')
+    .option('-n, --max-number-of-agents <number>', 'Optional, Maximum number of agents the batch may use. Defaults to the AIVA backend default when omitted.')
     .option('-b, --batch-name <name>', 'Optional, custom batch name.', '')
     .option(
         '--global-variables-overrides <JSON>',
@@ -52,6 +52,7 @@ program
         './batch-results.json',
     )
     .option('-v, --verbose', 'Optional, display verbose (debug) output')
+    .option('--no-wait', 'Optional, start the batch and exit immediately without waiting for results.')
     .action(async (options) => {
         const aivaOptions: AIVAOptions = {
             apiKey: options.apiKey,
@@ -69,6 +70,32 @@ program
             program.error('Either --labels or --batch-id must be provided.', { exitCode: 2 });
         }
 
+        if (options.labels && options.batchId) {
+            program.error('--labels and --batch-id are mutually exclusive; provide only one.', { exitCode: 2 });
+        }
+
+        if (options.batchId) {
+            const disallowedOverrides: string[] = [];
+            if (program.getOptionValueSource('maxNumberOfAgents') === 'cli') {
+                disallowedOverrides.push('--max-number-of-agents');
+            }
+            if (options.globalVariablesOverrides) {
+                disallowedOverrides.push('--global-variables-overrides');
+            }
+            if (options.variablesOverridesPerTest) {
+                disallowedOverrides.push('--variables-overrides-per-test');
+            }
+            if (options.gatewayName) {
+                disallowedOverrides.push('--gateway-name');
+            }
+            if (disallowedOverrides.length > 0) {
+                program.error(
+                    `When --batch-id is provided, these options cannot be overridden: ${disallowedOverrides.join(', ')}. Only --batch-name may be overridden.`,
+                    { exitCode: 2 },
+                );
+            }
+        }
+
         if (!isInRange(parseInt(options.pollPeriod, 10), MIN_POLL_SECONDS, MAX_POLL_SECONDS)) {
             program.error(`Poll period is invalid. Value must be between ${MIN_POLL_SECONDS} and ${MAX_POLL_SECONDS}.`, { exitCode: 2 });
         }
@@ -78,10 +105,11 @@ program
         } catch (e) {
             program.error(e instanceof Error ? e.message : String(e), { exitCode: 2 });
         }
-        aivaOptions.logger?.logInfo(`Executing test batch ${options.batchName} on ${options.aivaUrl} with parameters:
+        aivaOptions.logger?.logInfo(`Executing test batch on ${options.aivaUrl} with parameters:
         ${JSON.stringify(
             {
                 aivaUrl: options.aivaUrl,
+                batchName: options.batchName,
                 batchId: options.batchId,
                 labels: options.labels,
                 maxNumberOfAgents: options.maxNumberOfAgents,
@@ -103,6 +131,12 @@ program
             options.gatewayName,
             options.batchId,
         );
+        aivaOptions.logger?.logInfo(`Batch started with ID: ${batchInfo.testBatchId}`);
+        if (!options.wait) {
+           
+            return;
+        }
+
         const spinner = yoctoSpinner({ text: 'Waiting for batch results...' });
 
         spinner.start();

@@ -10,7 +10,7 @@ export interface RunTestBatchResponse {
  * @param {Request | string | URL} apiUrl
  * @param {string} apiKey
  * @param {string[]} labels
- * @param {string} maxNumberOfAgents
+ * @param {string} [maxNumberOfAgents] optional; omitted from the request when undefined so the backend default applies
  * @param {string} batchName
  * @param {object} globalVariableOverrides
  * @param {object} variableOverridesPerTest
@@ -21,7 +21,7 @@ export async function executeBatch(
     apiUrl: string,
     apiKey: string,
     labels: string[] | undefined,
-    maxNumberOfAgents: string,
+    maxNumberOfAgents: string | undefined,
     batchName: string,
     globalVariableOverrides: object | undefined,
     variableOverridesPerTest: object | undefined,
