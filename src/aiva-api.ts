@@ -57,8 +57,10 @@ export async function executeBatch(
     if (!res.ok) {
         let detail = await res.text();
         try {
-            const body = JSON.parse(detail) as { detail?: string; hint?: string; title?: string };
-            detail = [body.detail ?? body.title, body.hint].filter(Boolean).join(' ');
+            const body = JSON.parse(detail) as { detail?: string; hint?: string; title?: string; errors?: Record<string, string[]> };
+            const errorMessages = body.errors ? Object.values(body.errors).flat() : [];
+            const main = errorMessages.length > 0 ? errorMessages.join(', ') : (body.detail ?? body.title);
+            detail = [main, body.hint].filter(Boolean).join(' — ');
         } catch {
             // not JSON, use raw text
         }
