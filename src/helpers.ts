@@ -35,7 +35,10 @@ export interface AIVAErrorResponse {
 export async function waitForBatchCompleted(testBatchId: string, options: AIVAOptions): Promise<AIVAReport> {
     const aivaUrl = options.aivaUrl || DEFAULT_AIVA_URL;
     let batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
+    let pollCount = 0;
     while (isTestBatchRunning(batchStatus)) {
+        const s = batchStatus.results.summary;
+        options.logger?.logInfo(`Running (poll ${++pollCount}): ${s.pending} pending, ${s.passed} passed, ${s.failed} failed, ${s.skipped} skipped`);
         await sleep(options.pollPeriod || DEFAULT_POLL_PERIOD);
         batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
         if (options.verbose) options.logger?.logDebug(JSON.stringify(batchStatus, null, 4));
@@ -157,8 +160,15 @@ export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): 
     const startMs: number | undefined = summary.start;
     const stopMs: number | undefined = summary.stop;
     const duration = startMs !== undefined && stopMs !== undefined ? formatEpochDurationMs(startMs, stopMs) : 'n/a';
-    const logLine = `Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`;
-    logger?.logInfo(logLine);
+    logger?.logInfo(`Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`);
+    if (summary.failed > 0) {
+        const failed = batchResults.results.tests.filter((t) => t.status === 'failed' || t.rawStatus === 'FailedToStart');
+        failed.forEach((t) => {
+            const reason = t.message ? `: ${t.message}` : '';
+            const link = (t.extra as Record<string, string> | undefined)?.testResultLink;
+            logger?.logInfo(`  ❌ ${t.name} (${t.rawStatus ?? t.status})${reason}${link ? ` More details: ${link}` : ''}`);
+        });
+    }
 }
 
 export function isBatchSuccessful(batchStatus: CTRFReport): boolean {

@@ -55,7 +55,14 @@ export async function executeBatch(
         });
     }
     if (!res.ok) {
-        throw new Error(`AIVA batch request failed (${res.status}, ${await res.text()})`);
+        let detail = await res.text();
+        try {
+            const body = JSON.parse(detail) as { detail?: string; hint?: string; title?: string };
+            detail = [body.detail ?? body.title, body.hint].filter(Boolean).join(' ');
+        } catch {
+            // not JSON, use raw text
+        }
+        throw new Error(`AIVA batch request failed (${res.status}): ${detail}`);
     }
     console.log(`AIVA batch started`);
 
@@ -86,7 +93,7 @@ export async function getBatchStatusRaw(apiUrl: string, apiKey: string, batchId:
     }
     if (!res.ok) {
         const errText = (await res.json()) as AIVAErrorResponse;
-        throw new Error(`Batch status request failed (${res.status}): ${errText.errors}`);
+        throw new Error(`Batch status request failed (batchId=${batchId}, status=${res.status}): ${JSON.stringify(errText.errors)}`);
     }
     return await res.text();
 }

@@ -23,7 +23,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts && npx tsc --project tsconfig.build.json",
+    "build": "npx rimraf ./dist && npx rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript && npx tsc --project tsconfig.build.json",
     "prepare": "npm run build",
     "lint": "eslint src",
     "lint-fix": "eslint --fix src"
