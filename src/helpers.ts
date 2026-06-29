@@ -35,13 +35,12 @@ export interface AIVAErrorResponse {
 export async function waitForBatchCompleted(testBatchId: string, options: AIVAOptions): Promise<AIVAReport> {
     const aivaUrl = options.aivaUrl || DEFAULT_AIVA_URL;
     let batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
-    let pollCount = 0;
+    const previousStatuses = new Map<string, string>();
     while (isTestBatchRunning(batchStatus)) {
-        const s = batchStatus.results.summary;
-        options.logger?.logInfo(`Running (poll ${++pollCount}): ${s.pending} pending, ${s.passed} passed, ${s.failed} failed, ${s.skipped} skipped`);
         await sleep(options.pollPeriod || DEFAULT_POLL_PERIOD);
         batchStatus = await getBatchStatus(aivaUrl, options.apiKey, testBatchId);
         if (options.verbose) options.logger?.logDebug(JSON.stringify(batchStatus, null, 4));
+        logTestDeltas(batchStatus, previousStatuses, options.logger);
     }
     logBatchResults(batchStatus, options.logger);
     let batchResult: string;
@@ -161,13 +160,22 @@ export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): 
     const stopMs: number | undefined = summary.stop;
     const duration = startMs !== undefined && stopMs !== undefined ? formatEpochDurationMs(startMs, stopMs) : 'n/a';
     logger?.logInfo(`Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`);
-    if (summary.failed > 0) {
-        const failed = batchResults.results.tests.filter((t) => t.status === 'failed' || t.rawStatus === 'FailedToStart');
-        failed.forEach((t) => {
-            const reason = t.message ? `: ${t.message}` : '';
-            const link = (t.extra as Record<string, string> | undefined)?.testResultLink;
-            logger?.logInfo(`  ❌ ${t.name} (${t.rawStatus ?? t.status})${reason}${link ? ` More details: ${link}` : ''}`);
-        });
+}
+
+function logTestDeltas(batchStatus: CTRFReport, previousStatuses: Map<string, string>, logger?: AIVALogger): void {
+    const TERMINAL_STATUSES = new Set(['passed', 'failed', 'skipped']);
+    const s = batchStatus.results.summary;
+    logger?.logInfo(`Polling: ${s.pending} pending, ${s.passed} passed, ${s.failed} failed, ${s.skipped} skipped`);
+    for (const test of batchStatus.results.tests) {
+        const prev = previousStatuses.get(test.name);
+        const current = test.rawStatus ?? test.status;
+        if (prev !== current && TERMINAL_STATUSES.has(test.status)) {
+            const icon = test.status === 'passed' ? '✅' : test.status === 'skipped' ? '⏭️' : '❌';
+            const reason = test.message ? `: ${test.message}` : '';
+            const link = (test.extra as Record<string, string> | undefined)?.testResultLink;
+            logger?.logInfo(`  ${icon} ${test.name} (${current})${reason}${link ? ` — ${link}` : ''}`);
+        }
+        previousStatuses.set(test.name, current);
     }
 }
 
