@@ -45,6 +45,20 @@ You can also import helpers and API functions from the package:
 import { executeBatch, waitForBatchCompleted, parseLabels } from 'runner';
 ```
 
+## Versioning
+
+This package follows [semantic versioning](https://semver.org/). Releases are tagged as `vMAJOR.MINOR.PATCH` (e.g. `v1.1.0`).
+
+**Breaking changes** (removed CLI flags, changed behavior) bump the major version. Minor additions and bug fixes stay within the current major.
+
+When installing via npm git dependency, pin to an exact release tag for reproducibility:
+
+```shell
+npm install github:aiva-actions/runner#v1.1.0
+```
+
+Update the `#vX.Y.Z` ref in your `package.json` when you want to pick up a new release.
+
 ## Development
 Just clone [the repository](https://github.com/aiva-actions/run)
 
