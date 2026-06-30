@@ -1,9 +1,22 @@
 import type { CTRFReport } from 'ctrf';
-import { AIVAErrorResponse, sleep } from './helpers.js';
+import { sleep } from './helpers.js';
 import { GET_BATCH_STATUS_RETRY_DELAY_SECONDS } from './constants.js';
 
 export interface RunTestBatchResponse {
     testBatchId: string;
+}
+
+async function extractErrorDetail(res: Response): Promise<string> {
+    let detail = await res.text();
+    try {
+        const body = JSON.parse(detail) as { detail?: string; hint?: string; title?: string; errors?: Record<string, string[]> };
+        const errorMessages = body.errors ? Object.values(body.errors).flat() : [];
+        const main = errorMessages.length > 0 ? errorMessages.join(', ') : (body.detail ?? body.title);
+        detail = [main, body.hint].filter(Boolean).join(' — ');
+    } catch {
+        // not JSON — use raw text (e.g. nginx 502/504 HTML page)
+    }
+    return detail;
 }
 
 /**
@@ -55,16 +68,7 @@ export async function executeBatch(
         });
     }
     if (!res.ok) {
-        let detail = await res.text();
-        try {
-            const body = JSON.parse(detail) as { detail?: string; hint?: string; title?: string; errors?: Record<string, string[]> };
-            const errorMessages = body.errors ? Object.values(body.errors).flat() : [];
-            const main = errorMessages.length > 0 ? errorMessages.join(', ') : (body.detail ?? body.title);
-            detail = [main, body.hint].filter(Boolean).join(' — ');
-        } catch {
-            // not JSON, use raw text
-        }
-        throw new Error(`AIVA batch request failed (${res.status}): ${detail}`);
+        throw new Error(`AIVA batch request failed (${res.status}): ${await extractErrorDetail(res)}`);
     }
     console.log(`AIVA batch started`);
 
@@ -94,8 +98,7 @@ export async function getBatchStatusRaw(apiUrl: string, apiKey: string, batchId:
         });
     }
     if (!res.ok) {
-        const errText = (await res.json()) as AIVAErrorResponse;
-        throw new Error(`Batch status request failed (batchId=${batchId}, status=${res.status}): ${JSON.stringify(errText.errors)}`);
+        throw new Error(`Batch status request failed (batchId=${batchId}, status=${res.status}): ${await extractErrorDetail(res)}`);
     }
     return await res.text();
 }
