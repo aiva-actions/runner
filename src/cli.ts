@@ -133,7 +133,6 @@ program
         );
         aivaOptions.logger?.logInfo(`Batch started with ID: ${batchInfo.testBatchId}`);
         if (!options.wait) {
-           
             return;
         }
 
