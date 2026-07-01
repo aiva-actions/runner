@@ -1,4 +1,4 @@
-import type { CTRFReport, Summary } from 'ctrf';
+import type { CTRFReport, Summary, TestStatus } from 'ctrf';
 import { InvalidOptionArgumentError } from '@commander-js/extra-typings';
 import type { PathLike } from 'node:fs';
 import { stat } from 'node:fs/promises';
@@ -23,6 +23,7 @@ export interface AIVALogger {
 export interface AIVAReport {
     success: boolean;
     reportContent: string;
+    parsedReport: CTRFReport;
 }
 
 export interface AIVAErrorResponse {
@@ -49,7 +50,7 @@ export async function waitForBatchCompleted(testBatchId: string, options: AIVAOp
     } else {
         batchResult = await getBatchStatusRaw(aivaUrl, options.apiKey, testBatchId, options.format);
     }
-    return { success: isBatchSuccessful(batchStatus), reportContent: batchResult };
+    return { success: isBatchSuccessful(batchStatus), reportContent: batchResult, parsedReport: batchStatus };
 }
 
 /** @param {string} labelsInput
@@ -162,8 +163,9 @@ export function logBatchResults(batchResults: CTRFReport, logger?: AIVALogger): 
     logger?.logInfo(`Total: ${summary.tests}, Passed: ${summary.passed}, Failed: ${summary.failed}, Skipped: ${summary.skipped}, Duration: ${duration}`);
 }
 
+const TERMINAL_STATUSES = new Set<TestStatus>(['passed', 'failed', 'skipped']);
+
 function logTestDeltas(batchStatus: CTRFReport, previousStatuses: Map<string, string>, logger?: AIVALogger): void {
-    const TERMINAL_STATUSES = new Set(['passed', 'failed', 'skipped']);
     const s = batchStatus.results.summary;
     logger?.logInfo(`Polling: ${s.pending} pending, ${s.passed} passed, ${s.failed} failed, ${s.skipped} skipped`);
     for (const test of batchStatus.results.tests) {
