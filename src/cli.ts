@@ -34,7 +34,7 @@ program
     .option('-b, --batch-name <name>', 'Optional, custom batch name.', '')
     .option(
         '--global-variables-overrides <JSON>',
-        'Optional, JSON object applied to all tests in the batch {"username": "testuser"}',
+        'Optional, JSON object applied to all tests in the batch {"username": "testuser"}. With --batch-id it is merged over the overrides stored on the batch.',
         validateVariablesOverrides,
     )
     .option(
@@ -79,9 +79,6 @@ program
             if (program.getOptionValueSource('maxNumberOfAgents') === 'cli') {
                 disallowedOverrides.push('--max-number-of-agents');
             }
-            if (options.globalVariablesOverrides) {
-                disallowedOverrides.push('--global-variables-overrides');
-            }
             if (options.variablesOverridesPerTest) {
                 disallowedOverrides.push('--variables-overrides-per-test');
             }
@@ -90,7 +87,7 @@ program
             }
             if (disallowedOverrides.length > 0) {
                 program.error(
-                    `When --batch-id is provided, these options cannot be overridden: ${disallowedOverrides.join(', ')}. Only --batch-name may be overridden.`,
+                    `When --batch-id is provided, these options cannot be overridden: ${disallowedOverrides.join(', ')}. Only --batch-name and --global-variables-overrides may be overridden.`,
                     { exitCode: 2 },
                 );
             }
