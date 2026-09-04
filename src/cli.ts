@@ -123,8 +123,8 @@ program
             options.labels,
             options.maxNumberOfAgents,
             options.batchName,
-            options.globalVariablesOverrides ? JSON.parse(options.globalVariablesOverrides) : undefined,
-            options.variablesOverridesPerTest ? JSON.parse(options.variablesOverridesPerTest) : undefined,
+            options.globalVariablesOverrides,
+            options.variablesOverridesPerTest,
             options.gatewayName,
             options.batchId,
         );

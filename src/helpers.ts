@@ -85,9 +85,9 @@ export function validateAivaApiKey(key: string, dummyPrevious: string): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- commander option parser passes previous value
-export function validateVariablesOverrides(key: string, dummyPrevious: string): string {
+export function validateVariablesOverrides(key: string, dummyPrevious: object): object {
     if (key === '') {
-        return '{}';
+        return {};
     }
     let parsed: unknown;
     try {
@@ -98,7 +98,7 @@ export function validateVariablesOverrides(key: string, dummyPrevious: string): 
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
         throw new InvalidOptionArgumentError('Expected a JSON object, e.g. {"username": "testuser"}');
     }
-    return key;
+    return parsed;
 }
 
 /**
