@@ -28,7 +28,7 @@ npx runner -l some;labels -k <AIVA_API_KEY>
 | `-l`, `--labels <labels>` | Semicolon-separated labels that select which tests run (e.g. `smoke;regression`). At least one non-empty label is required after splitting. | — |
 | `-n`, `--max-number-of-agents <number>` | Optional. Maximum number of agents the batch may use. | `"1"` |
 | `-b`, `--batch-name <name>` | Optional. Custom batch name. | `""` |
-| `--global-variables-overrides <JSON>` | Optional. JSON object applied to all tests in the batch, e.g. `{"username": "testuser"}`. | `""` |
+| `--global-variables-overrides <JSON>` | Optional. JSON object applied to all tests in the batch, e.g. `{"username": "testuser"}`. With `--batch-id` it is merged over the overrides stored on the batch (a variable named here wins). | `""` |
 | `--variables-overrides-per-test <JSON>` | Optional. JSON object mapping test IDs to variable overrides, e.g. `{"123e4567-e89b-12d3-a456-426614174000": { "user": "otheruser", "label": "success" }}`. | `""` |
 | `-g`, `--gateway-name <gateway-name>` | Optional. Gateway name used by aiva-node during the test. | — |
 | `-p`, `--poll-period <seconds>` | Optional. Seconds to wait between status polls. Must be between 5 and 60. | `"10"` |
